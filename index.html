@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>山酒吧五子棋大賽首頁</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>五子棋比賽</h1>
+
+  <h2>新鮮熱騰騰賽程表</h2>
+  <img src="schedule.png" alt="賽程表" style="max-width:90%;border:1px solid #333;">
+
+  <h3>刷房卡：</h3>
+  <input type="text" id="roomInput" placeholder="房號">
+  <button id="joinBtn">Check In</button>
+
+  <script>
+    const joinBtn = document.getElementById('joinBtn');
+    joinBtn.addEventListener('click', () => {
+      const room = document.getElementById('roomInput').value.trim();
+      if(room === ''){
+        alert('房號');
+        return;
+      }
+    
+      window.location.href = `game.html?room=${room}`;
+    });
+  </script>
+</body>
+</html>
