@@ -18,7 +18,7 @@ const sessionMiddleware = session({
 });
 app.use(sessionMiddleware);
 
-// Socket.IO 
+// 讓 Socket.IO 
 io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
@@ -28,10 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 房間狀態
-let rooms = {}; // { roomId: { players: [], board: [], turn: 'black', winner: null } }
-
-// 登入驗證 
+// 登入系統
 let users = {}; // { username: password }
 
 app.post('/register', (req, res) => {
@@ -51,7 +48,9 @@ app.post('/login', (req, res) => {
   }
 });
 
-// 加入房間
+// 房間管理
+let rooms = {}; // { roomId: { players: [], board: [], turn: 'black', winner: null } }
+
 app.post('/join', (req, res) => {
   const { roomId } = req.body;
   if (!req.session.username) return res.status(401).send('請先登入');
@@ -90,19 +89,15 @@ io.on('connection', (socket) => {
 
   const room = rooms[roomId];
 
-  // 進入房間
   socket.emit('initBoard', { board: room.board, turn: room.turn, winner: room.winner });
 
-  // 落子事件
   socket.on('move', ({ x, y }) => {
     if (room.winner) return;
     if (room.turn !== color) return;
-
-    if (room.board[y][x]) return; // 已有棋子
+    if (room.board[y][x]) return;
 
     room.board[y][x] = color;
 
-    // 判定勝利
     if (checkWin(room.board, x, y, color)) {
       room.winner = color;
     } else {
@@ -117,7 +112,6 @@ io.on('connection', (socket) => {
     });
   });
 
-  // 離開房間
   socket.on('disconnect', () => {
     if (!rooms[roomId]) return;
     rooms[roomId].players = rooms[roomId].players.filter(p => p.username !== username);
@@ -125,7 +119,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// 判定勝利函式
 function checkWin(board, x, y, color) {
   const directions = [
     [1, 0], [0, 1], [1, 1], [1, -1]
