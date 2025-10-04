@@ -96,3 +96,21 @@ socket.on('restartBoard', ()=>{
 restartBtn.addEventListener('click',()=>{
   socket.emit('restart',room);
 });
+
+const moveSound = new Audio('move.mp3');
+
+
+function placePiece(x, y, color) {
+   
+    
+    moveSound.play(); 
+}
+function highlightLastMove(x, y) {
+    const cell = document.getElementById(`cell-${x}-${y}`);
+    cell.classList.add('highlight'); // CSS 加亮
+
+    // 1.5 秒後移除
+    setTimeout(() => {
+        cell.classList.remove('highlight');
+    }, 1500);
+}
