@@ -1,11 +1,21 @@
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
+#schedule {
+    margin: 20px auto;
+    text-align: center;
+}
+
+#scheduleImg {
+    max-width: 80%;
+    height: auto;
+    border: 2px solid #000;
+}
+
+#joinRoomSection {
+    margin: 20px auto;
 }
 
 #board {
-    border: 2px solid #000;   /* 邊框 */
-    background-color: #f5dba5; /* 底色 */
-    display: block;            
-    margin: 0 auto;             /* 置中 */
+    border: 2px solid #000;
+    background-color: #f5dba5;
+    display: block;
+    margin: 20px auto;
 }
