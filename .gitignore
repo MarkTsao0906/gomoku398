@@ -1,0 +1,20 @@
+# Node modules
+node_modules/
+
+# 日誌檔
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 作業系統產生的隱藏檔
+.DS_Store
+Thumbs.db
+
+# SQLite 資料庫
+*.db
+users.db
+
+# 編譯輸出或暫存檔
+dist/
+build/
+.env
