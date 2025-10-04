@@ -1,35 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <title>山酒吧五子棋</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>山酒吧五子棋大賽</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="loginDiv">
-        <h2>登入 / 註冊</h2>
-        <input type="text" id="username" placeholder="帳號">
-        <input type="password" id="password" placeholder="密碼">
-        <button id="loginBtn">登入</button>
-        <button id="registerBtn">註冊</button>
-        <p id="loginMsg"></p>
+  <div id="gameContainer">
+    <div id="playerLeft">
+      <span id="player1"></span>
     </div>
-
-    <div id="roomDiv" style="display:none;">
-        <h2>房間加入</h2>
-        <input type="text" id="roomInput" placeholder="輸入房號">
-        <button id="joinBtn">進房</button>
-        <p id="roomMsg"></p>
+    <canvas id="board" width="600" height="600"></canvas>
+    <div id="playerRight">
+      <span id="player2"></span>
     </div>
-
-    <div id="gameDiv" style="display:none;">
-        <h2>你的顏色: <span id="playerColor"></span></h2>
-        <canvas id="board" width="450" height="450"></canvas>
-        <audio id="moveAudio" src="move.mp3"></audio>
-        <p id="statusMsg"></p>
-    </div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="client.js"></script>
+  </div>
+  <audio id="moveSound" src="move.mp3"></audio>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
 </body>
 </html>

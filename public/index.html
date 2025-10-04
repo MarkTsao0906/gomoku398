@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<title>山酒吧五子棋大賽首頁</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>山酒吧五子棋大廳</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>五子棋對弈</h1>
-<img src="schedule.png" alt="新鮮賽程表" width="600">
-<h2>登入</h2>
-<form action="/login" method="post">
-    帳號: <input type="text" name="username" required>
-    密碼: <input type="password" name="password" required>
-    <button type="submit">登入</button>
-</form>
-<h2>註冊</h2>
-<form action="/register" method="post">
-    帳號: <input type="text" name="username" required>
-    密碼: <input type="password" name="password" required>
-    <button type="submit">註冊</button>
-</form>
+  <h1>山酒吧五子棋大廳</h1>
+  <div>
+    <input type="text" id="nickname" placeholder="輸入暱稱">
+    <input type="text" id="roomId" placeholder="輸入房號">
+    <button id="joinBtn">進入房間</button>
+  </div>
+  <h2>賽程表</h2>
+  <img src="schedule.png" alt="賽程表">
+  <script>
+    document.getElementById('joinBtn').onclick = () => {
+      const nickname = document.getElementById('nickname').value.trim();
+      const roomId = document.getElementById('roomId').value.trim();
+      if(!nickname || !roomId) return alert("請輸入暱稱與房號");
+      window.location.href = `game.html?nickname=${encodeURIComponent(nickname)}&roomId=${encodeURIComponent(roomId)}`;
+    };
+  </script>
 </body>
 </html>
