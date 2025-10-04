@@ -11,20 +11,24 @@ let lastMove = null;
 
 // 棋盤
 function drawBoard() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "#000";
-  for (let i = 0; i < size; i++) {
-    ctx.beginPath();
-    ctx.moveTo(i * cellSize + cellSize / 2, cellSize / 2);
-    ctx.lineTo(i * cellSize + cellSize / 2, canvas.height - cellSize / 2);
-    ctx.stroke();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "#000";
 
-    ctx.beginPath();
-    ctx.moveTo(cellSize / 2, i * cellSize + cellSize / 2);
-    ctx.lineTo(canvas.width - cellSize / 2, i * cellSize + cellSize / 2);
-    ctx.stroke();
-  }
+    for (let i = 0; i < size; i++) {
+        // 縱線
+        ctx.beginPath();
+        ctx.moveTo(i * cellSize + cellSize / 2, cellSize / 2);
+        ctx.lineTo(i * cellSize + cellSize / 2, canvas.height - cellSize / 2);
+        ctx.stroke();
 
+        // 橫線
+        ctx.beginPath();
+        ctx.moveTo(cellSize / 2, i * cellSize + cellSize / 2);
+        ctx.lineTo(canvas.width - cellSize / 2, i * cellSize + cellSize / 2);
+        ctx.stroke();
+    }
+}
+drawBoard(); // 一開始就畫
   // 棋子
   for (let x = 0; x < size; x++) {
     for (let y = 0; y < size; y++) {
