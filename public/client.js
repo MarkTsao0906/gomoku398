@@ -93,17 +93,15 @@ canvas.addEventListener("click", (e) => {
     board[x][y] = myPlayer;
     lastMove = { x, y };
     drawBoard();
-    document.getElementById("moveSound").play();
 
-    if (checkWin(x, y, myPlayer)) {
-        alert(myPlayer + " 獲勝！");
-        myTurn = false;
-    }
+    // 音效
+    const moveSound = document.getElementById("moveSound");
+    moveSound.currentTime = 0; 
+    moveSound.play();
 
     socket.emit("makeMove", { roomId, x, y, player: myPlayer });
     myTurn = false;
 });
-
 // 接收落子
 socket.on("opponentMove", (data) => {
     board[data.x][data.y] = data.player; // 對方顏色
