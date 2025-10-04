@@ -96,4 +96,7 @@ function checkWin(board, r, c, color) {
 }
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, ()=>console.log(`Server running on port ${PORT}`));
+http.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.use(express.static("public"));
+
+
