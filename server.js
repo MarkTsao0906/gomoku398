@@ -1,102 +1,120 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
+const sqlite3 = require("sqlite3").verbose();
+const bodyParser = require("body-parser");
+const session = require("express-session");
+
 const app = express();
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
-
-app.use(express.static("public"));
-app.use(express.json());
-
-let users = {}; // username -> password
-let rooms = {}; // roomId -> { players: [], board, turn, lastMove, gameOver }
-
-app.post("/register", (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.json({ success: false, msg: "缺少帳號或密碼" });
-  if (users[username]) return res.json({ success: false, msg: "帳號已存在" });
-  users[username] = password;
-  return res.json({ success: true });
-});
-
-app.post("/login", (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.json({ success: false, msg: "缺少帳號或密碼" });
-  if (users[username] !== password) return res.json({ success: false, msg: "帳號或密碼錯誤" });
-  return res.json({ success: true });
-});
-
-io.on("connection", (socket) => {
-  console.log("新連線:", socket.id);
-
-  socket.on("joinRoom", ({ roomId, username }) => {
-    if (!rooms[roomId]) {
-      rooms[roomId] = {
-        players: [],
-        board: Array.from({ length: 15 }, () => Array(15).fill(null)),
-        turn: "black",
-        lastMove: null,
-        gameOver: false,
-      };
-    }
-    const room = rooms[roomId];
-    if (room.players.length >= 2) {
-      socket.emit("roomFull");
-      return;
-    }
-    room.players.push({ id: socket.id, username });
-    socket.join(roomId);
-
-    const color = room.players.length === 1 ? "black" : "white";
-    socket.emit("assignColor", { color });
-
-    io.to(roomId).emit("syncBoard", {
-      board: room.board,
-      currentTurn: room.turn,
-      lastMove: room.lastMove,
-    });
-  });
-
-  socket.on("move", ({ roomId, r, c, color }) => {
-    const room = rooms[roomId];
-    if (!room || room.gameOver) return;
-    if (room.board[r][c]) return;
-    if (color !== room.turn) return;
-
-    room.board[r][c] = color;
-    room.lastMove = { r, c };
-    room.turn = color === "black" ? "white" : "black";
-
-    io.to(roomId).emit("move", { r, c, color, lastMove: room.lastMove });
-
-    if (checkWin(room.board, r, c, color)) {
-      room.gameOver = true;
-      io.to(roomId).emit("gameOver", color);
-    }
-  });
-
-  socket.on("disconnect", () => {
-    for (const roomId in rooms) {
-      const room = rooms[roomId];
-      room.players = room.players.filter((p) => p.id !== socket.id);
-      if (room.players.length === 0) delete rooms[roomId];
-    }
-  });
-});
-
-function checkWin(board, r, c, color) {
-  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
-  for (const [dx,dy] of dirs) {
-    let count = 1;
-    for (let sign of [1,-1]) {
-      let x=c+dx*sign, y=r+dy*sign;
-      while (board[y] && board[y][x]===color){ count++; x+=dx*sign; y+=dy*sign; }
-    }
-    if(count>=5) return true;
-  }
-  return false;
-}
+const server = http.createServer(app);
+const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-app.use(express.static("public"));
 
+// 設定 session
+app.use(session({
+    secret: "gomoku-secret",
+    resave: false,
+    saveUninitialized: true
+}));
 
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
+
+const db = new sqlite3.Database("users.db");
+
+// 建立 users table
+db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT
+)`);
+
+// 登入頁
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/index.html"));
+});
+
+// 登入
+app.post("/login", (req, res) => {
+    const { username, password } = req.body;
+    db.get("SELECT * FROM users WHERE username = ?", [username], (err, row) => {
+        if (!row) return res.send("使用者不存在");
+        if (row.password !== password) return res.send("密碼錯誤");
+        req.session.user = username;
+        res.redirect("/game.html");
+    });
+});
+
+// 註冊
+app.post("/register", (req, res) => {
+    const { username, password } = req.body;
+    db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err) => {
+        if (err) return res.send("使用者已存在");
+        res.redirect("/");
+    });
+});
+
+// ---------------- Socket.io ----------------
+const rooms = {}; // roomId -> { board, turn, players }
+
+io.on("connection", (socket) => {
+    socket.on("joinRoom", (roomId) => {
+        socket.join(roomId);
+        if (!rooms[roomId]) {
+            rooms[roomId] = { board: Array(15).fill(null).map(() => Array(15).fill(null)), turn: "black", players: [] };
+        }
+        if (rooms[roomId].players.length < 2) {
+            const color = rooms[roomId].players.length === 0 ? "black" : "white";
+            rooms[roomId].players.push({ id: socket.id, color });
+            socket.emit("assignColor", color);
+            socket.emit("boardUpdate", rooms[roomId].board);
+            io.to(roomId).emit("turn", rooms[roomId].turn);
+        } else {
+            socket.emit("full", "房間已滿");
+        }
+    });
+
+    socket.on("makeMove", ({ roomId, x, y }) => {
+        const room = rooms[roomId];
+        if (!room) return;
+        const player = room.players.find(p => p.id === socket.id);
+        if (!player) return;
+        if (room.turn !== player.color) return;
+        if (room.board[y][x]) return;
+
+        room.board[y][x] = player.color;
+        io.to(roomId).emit("boardUpdate", room.board);
+        io.to(roomId).emit("moveSound");
+
+        // 檢查勝負
+        if (checkWin(room.board, x, y, player.color)) {
+            io.to(roomId).emit("gameOver", player.color);
+        } else {
+            room.turn = room.turn === "black" ? "white" : "black";
+            io.to(roomId).emit("turn", room.turn);
+        }
+    });
+});
+
+function checkWin(board, x, y, color) {
+    const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+    for (let [dx,dy] of dirs) {
+        let count = 1;
+        for (let d=1; d<=4; d++) {
+            const nx = x + dx*d, ny = y + dy*d;
+            if (board[ny] && board[ny][nx] === color) count++;
+            else break;
+        }
+        for (let d=1; d<=4; d++) {
+            const nx = x - dx*d, ny = y - dy*d;
+            if (board[ny] && board[ny][nx] === color) count++;
+            else break;
+        }
+        if (count >= 5) return true;
+    }
+    return false;
+}
+
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

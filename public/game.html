@@ -3,15 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <title>山酒吧五子棋大賽</title>
-<style>
-#board{border:1px solid #333;}
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<h2 id="myColor">你的顏色: </h2>
+<h1>五子棋遊戲</h1>
+<label>房號: <input type="text" id="roomInput"></label>
+<button id="joinBtn">加入房間</button>
+<p id="colorInfo">你的顏色: </p>
+<p id="turnInfo">輪到: </p>
 <canvas id="board" width="600" height="600"></canvas>
-<audio id="moveSound" src="move.mp3"></audio>
+<audio id="moveAudio" src="move.mp3"></audio>
 <script src="/socket.io/socket.io.js"></script>
-<script src="/client.js"></script>
+<script src="client.js"></script>
 </body>
 </html>
