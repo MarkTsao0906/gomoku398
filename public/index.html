@@ -1,22 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>五子棋登入</title>
+<script src="/auth.js"></script>
+<style>
+body{text-align:center;font-family:Arial;}
+#schedule{width:400px;margin:20px auto;}
+</style>
+</head>
 <body>
-    <h1>山酒吧五子棋大賽</h1>
+<h1>山酒吧五子棋大賽</h1>
 
-    <!-- 新鮮熱騰騰賽程表 -->
-    <div id="schedule">
-        <h2>賽程表</h2>
-        <img src="schedule.png" alt="新鮮熱騰騰賽程表" id="scheduleImg">
-    </div>
+<img id="schedule" src="schedule.png" alt="新鮮賽程表">
 
-    <!-- 刷房卡 -->
-    <div id="joinRoomSection">
-        <input type="text" id="roomId" placeholder="刷房卡">
-        <button onclick="joinRoom()">進房間</button>
-    </div>
+<div>
+<input type="text" id="username" placeholder="帳號">
+<input type="password" id="password" placeholder="密碼">
+<button onclick="login()">登入</button>
+<button onclick="register()">註冊</button>
+</div>
 
-    <!-- 棋盤 -->
-    <canvas id="board" width="600" height="600"></canvas>
-    <audio id="moveSound" src="/move.mp3"></audio>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="client.js"></script>
+<div>
+<input type="text" id="roomId" placeholder="房號">
+<button onclick="enterGame()">進入房間</button>
+</div>
 </body>
+</html>
