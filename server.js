@@ -1,34 +1,31 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
 
-app.use(express.static(__dirname));
+app.use(express.static("public"));
 
-const rooms = {};
+io.on("connection", (socket) => {
+    console.log("一位玩家連線");
 
-io.on('connection', socket => {
-  socket.on('joinRoom', room => {
-    if(!rooms[room]) rooms[room] = {black:null, white:null};
-    const roomObj = rooms[room];
+    socket.on("joinRoom", (room) => {
+        socket.join(room);
+        socket.room = room;
+        console.log(`玩家加入房間: ${room}`);
+        socket.emit("joinedRoom", room);
+    });
 
-    let color;
-    if(!roomObj.black){ roomObj.black = socket.id; color='black'; }
-    else if(!roomObj.white){ roomObj.white = socket.id; color='white'; }
-    else { socket.emit('init','spectator'); return; }
+    socket.on("placePiece", (data) => {
+        // 廣播給同房間的其他玩家
+        socket.to(socket.room).emit("opponentMove", data);
+    });
 
-    socket.join(room);
-    socket.emit('init', color);
-  });
-
-  socket.on('makeMove', ({room,x,y})=>{
-    const color = (rooms[room].black === socket.id)?'black':'white';
-    socket.to(room).emit('opponentMove',{x,y,color});
-  });
-
-  socket.on('restart', room=>{
-    io.to(room).emit('restartBoard');
-  });
+    socket.on("disconnect", () => {
+        console.log("一位玩家離線");
+    });
 });
 
-http.listen(3000, ()=>console.log('Server running on http://localhost:3000'));
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+    console.log(`伺服器運行在 http://localhost:${PORT}`);
+});

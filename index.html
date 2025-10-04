@@ -2,30 +2,21 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>山酒吧五子棋大賽首頁</title>
+  <title>山酒吧五子棋大賽</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>五子棋比賽</h1>
+  <h1>五子棋對弈</h1>
+  <img src="schedule.png" alt="新鮮熱騰騰賽程表" style="max-width: 400px; display: block; margin-bottom: 20px;">
 
-  <h2>新鮮熱騰騰賽程表</h2>
-  <img src="schedule.png" alt="賽程表" style="max-width:90%;border:1px solid #333;">
+  <div id="room-select">
+    <input type="text" id="roomInput" placeholder="刷房卡">
+    <button onclick="joinRoom()">Check In</button>
+  </div>
 
-  <h3>刷房卡：</h3>
-  <input type="text" id="roomInput" placeholder="房號">
-  <button id="joinBtn">Check In</button>
+  <canvas id="board" width="600" height="600" style="display:none;"></canvas>
 
-  <script>
-    const joinBtn = document.getElementById('joinBtn');
-    joinBtn.addEventListener('click', () => {
-      const room = document.getElementById('roomInput').value.trim();
-      if(room === ''){
-        alert('房號');
-        return;
-      }
-    
-      window.location.href = `game.html?room=${room}`;
-    });
-  </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
 </body>
 </html>

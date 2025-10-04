@@ -1,50 +1,14 @@
+body {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
 #board {
-  position: relative;
-  width: 480px;
-  height: 480px;
-  margin: 20px auto;
-  background: #f6e9bf;
-  border: 2px solid #333;
+  border: 2px solid black;
+  margin-top: 20px;
 }
 
-
-.line-horizontal {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: black;
-}
-.line-vertical {
-  position: absolute;
-  top: 0;
-  width: 1px;
-  height: 100%;
-  background: black;
-}
-
-
-.cell {
-  width: 32px;
-  height: 32px;
-  position: absolute;
-  transform: translate(-50%, -50%);
-  cursor: pointer;
-}
-
-.stone {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.black { background: black; }
-.white { background: white; border: 1px solid #000; }
 .highlight {
-    border: 2px solid red; /* 標示顏色可改 */
-    border-radius: 50%;
+  box-shadow: 0 0 10px red;
+  border-radius: 50%;
 }
