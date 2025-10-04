@@ -1,45 +1,35 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<title>山酒吧五子棋大賽</title>
-<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <title>山酒吧五子棋</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<h1>山酒吧五子棋大賽</h1>
+    <div id="loginDiv">
+        <h2>登入 / 註冊</h2>
+        <input type="text" id="username" placeholder="帳號">
+        <input type="password" id="password" placeholder="密碼">
+        <button id="loginBtn">登入</button>
+        <button id="registerBtn">註冊</button>
+        <p id="loginMsg"></p>
+    </div>
 
-<div id="login-section">
-  <h2>登入</h2>
-  <input type="text" id="username" placeholder="帳號">
-  <input type="password" id="password" placeholder="密碼">
-  <button id="login-btn">登入</button>
-  <button id="register-btn">註冊</button>
-  <p id="login-msg"></p>
-</div>
+    <div id="roomDiv" style="display:none;">
+        <h2>房間加入</h2>
+        <input type="text" id="roomInput" placeholder="輸入房號">
+        <button id="joinBtn">進房</button>
+        <p id="roomMsg"></p>
+    </div>
 
-<div id="room-section" style="display:none;">
-  <h2>輸入房號加入遊戲</h2>
-  <input type="text" id="room-input" placeholder="房號">
-  <button id="join-room-btn">進入房間</button>
-  <p id="player-color"></p>
-</div>
+    <div id="gameDiv" style="display:none;">
+        <h2>你的顏色: <span id="playerColor"></span></h2>
+        <canvas id="board" width="450" height="450"></canvas>
+        <audio id="moveAudio" src="move.mp3"></audio>
+        <p id="statusMsg"></p>
+    </div>
 
-<div id="game-section" style="display:none;">
-  <canvas id="board" width="600" height="600"></canvas>
-  <p id="turn-info"></p>
-  <audio id="move-sound" src="move.mp3"></audio>
-</div>
-
-<div id="schedule">
-  <h2>新鮮賽程表</h2>
-  <table>
-    <tr><th>時間</th><th>對戰</th></tr>
-    <tr><td>10:00</td><td>玩家A vs 玩家B</td></tr>
-    <tr><td>11:00</td><td>玩家C vs 玩家D</td></tr>
-  </table>
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="client.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
 </body>
 </html>

@@ -1,120 +1,131 @@
 const socket = io();
 
-const loginSection = document.getElementById('login-section');
-const roomSection = document.getElementById('room-section');
-const gameSection = document.getElementById('game-section');
+// --- DOM ---
+const loginDiv = document.getElementById('loginDiv');
+const roomDiv = document.getElementById('roomDiv');
+const gameDiv = document.getElementById('gameDiv');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const loginBtn = document.getElementById('loginBtn');
+const registerBtn = document.getElementById('registerBtn');
+const loginMsg = document.getElementById('loginMsg');
+const roomInput = document.getElementById('roomInput');
+const joinBtn = document.getElementById('joinBtn');
+const roomMsg = document.getElementById('roomMsg');
+const boardCanvas = document.getElementById('board');
+const ctx = boardCanvas.getContext('2d');
+const playerColorSpan = document.getElementById('playerColor');
+const moveAudio = document.getElementById('moveAudio');
+const statusMsg = document.getElementById('statusMsg');
 
-const loginBtn = document.getElementById('login-btn');
-const registerBtn = document.getElementById('register-btn');
-const loginMsg = document.getElementById('login-msg');
-
-const joinRoomBtn = document.getElementById('join-room-btn');
-const roomInput = document.getElementById('room-input');
-const playerColorP = document.getElementById('player-color');
-
-const canvas = document.getElementById('board');
-const ctx = canvas.getContext('2d');
-const moveSound = document.getElementById('move-sound');
 let board = [];
-let myColor;
-let currentTurn;
+let playerColor = '';
+let myTurn = false;
 
-loginBtn.onclick = () => {
-  fetch('/login', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({username:document.getElementById('username').value, password:document.getElementById('password').value})
-  }).then(r=>r.json()).then(data=>{
-    if(data.success){
-      loginSection.style.display='none';
-      roomSection.style.display='block';
-    }else{
-      loginMsg.textContent=data.message;
-    }
-  });
-};
-
-registerBtn.onclick = () => {
-  fetch('/register', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({username:document.getElementById('username').value, password:document.getElementById('password').value})
-  }).then(r=>r.json()).then(data=>{
-    loginMsg.textContent = data.success ? "註冊成功" : data.message;
-  });
-};
-
-joinRoomBtn.onclick = () => {
-  const roomId = roomInput.value.trim();
-  if(!roomId) return alert("請輸入房號");
-  socket.emit('joinRoom', roomId);
-};
-
-socket.on('assignColor', color => {
-  myColor = color;
-  playerColorP.textContent = `你的顏色: ${color}`;
-  roomSection.style.display='none';
-  gameSection.style.display='block';
+// --- 登入 / 註冊 ---
+loginBtn.addEventListener('click', () => {
+    fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: usernameInput.value, password: passwordInput.value })
+    }).then(res => res.json())
+      .then(data => {
+        if (data.success) {
+            loginDiv.style.display = 'none';
+            roomDiv.style.display = 'block';
+        } else {
+            loginMsg.textContent = data.message || '登入失敗';
+        }
+    });
 });
 
-socket.on('initBoard', (b, turn, winner) => {
-  board = b;
-  currentTurn = turn;
-  drawBoard();
-  updateTurnInfo();
+registerBtn.addEventListener('click', () => {
+    fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: usernameInput.value, password: passwordInput.value })
+    }).then(res => res.json())
+      .then(data => {
+        loginMsg.textContent = data.success ? '註冊成功，請登入' : data.message || '註冊失敗';
+    });
 });
 
-socket.on('updateBoard', (x, y, color) => {
-  board[y][x] = color;
-  drawBoard();
-  moveSound.play();
+// --- 進房 ---
+joinBtn.addEventListener('click', () => {
+    const roomId = roomInput.value.trim();
+    if (!roomId) return;
+    socket.emit('joinRoom', roomId);
 });
 
-socket.on('updateTurn', turn => {
-  currentTurn = turn;
-  updateTurnInfo();
+// --- Socket.io ---
+socket.on('color', color => {
+    playerColor = color;
+    playerColorSpan.textContent = color;
+    roomDiv.style.display = 'none';
+    gameDiv.style.display = 'block';
+});
+
+socket.on('full', () => {
+    roomMsg.textContent = '房間已滿';
+});
+
+socket.on('boardUpdate', newBoard => {
+    board = newBoard;
+    drawBoard();
+});
+
+socket.on('moveSound', () => {
+    moveAudio.play();
 });
 
 socket.on('gameOver', winner => {
-  alert(`${winner}勝利！`);
+    statusMsg.textContent = winner === playerColor ? '你贏了！' : '你輸了！';
 });
 
-function updateTurnInfo(){
-  document.getElementById('turn-info').textContent = `現在輪到: ${currentTurn}`;
-}
+// --- Canvas --- 
+const gridSize = 30;
+const boardSize = 15;
 
-function drawBoard(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const cell = canvas.width/15;
-  for(let i=0;i<15;i++){
-    ctx.beginPath();
-    ctx.moveTo(cell/2, cell/2 + i*cell);
-    ctx.lineTo(canvas.width-cell/2, cell/2 + i*cell);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cell/2 + i*cell, cell/2);
-    ctx.lineTo(cell/2 + i*cell, canvas.height-cell/2);
-    ctx.stroke();
-  }
+boardCanvas.addEventListener('click', (e) => {
+    if (!playerColor) return;
 
-  for(let y=0;y<15;y++){
-    for(let x=0;x<15;x++){
-      if(board[y][x]!==''){
+    const rect = boardCanvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / gridSize);
+    const y = Math.floor((e.clientY - rect.top) / gridSize);
+
+    socket.emit('placePiece', { roomId: roomInput.value, x, y });
+});
+
+function drawBoard() {
+    ctx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
+
+    // 15x15 棋盤
+    ctx.strokeStyle = '#000';
+    for (let i = 0; i < boardSize; i++) {
         ctx.beginPath();
-        ctx.arc(cell/2 + x*cell, cell/2 + y*cell, cell/3, 0, Math.PI*2);
-        ctx.fillStyle = board[y][x]==='black' ? 'black' : 'white';
-        ctx.fill();
-        ctx.strokeStyle = 'black';
+        ctx.moveTo(gridSize / 2, gridSize / 2 + i * gridSize);
+        ctx.lineTo(gridSize / 2 + gridSize * (boardSize-1), gridSize / 2 + i * gridSize);
         ctx.stroke();
-      }
-    }
-  }
-}
 
-canvas.addEventListener('click', e=>{
-  const rect = canvas.getBoundingClientRect();
-  const cell = canvas.width/15;
-  const x = Math.floor((e.clientX-rect.left)/cell);
-  const y = Math.floor((e.clientY-rect.top)/cell);
-  socket.emit('makeMove', {x,y});
-});
+        ctx.beginPath();
+        ctx.moveTo(gridSize / 2 + i * gridSize, gridSize / 2);
+        ctx.lineTo(gridSize / 2 + i * gridSize, gridSize / 2 + gridSize * (boardSize-1));
+        ctx.stroke();
+    }
+
+    // 畫棋子
+    for (let y = 0; y < boardSize; y++) {
+        for (let x = 0; x < boardSize; x++) {
+            if (board[y][x]) {
+                ctx.beginPath();
+                ctx.arc(gridSize/2 + x*gridSize, gridSize/2 + y*gridSize, gridSize/2-2, 0, Math.PI*2);
+                ctx.fillStyle = board[y][x];
+                ctx.fill();
+                if (board[y][x] === 'white') {
+                    ctx.strokeStyle = 'black';
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+}
