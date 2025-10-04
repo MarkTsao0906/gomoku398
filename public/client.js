@@ -61,19 +61,32 @@ drawBoard();
 
 // 落子
 canvas.addEventListener("click", (e) => {
+  canvas.addEventListener("click", (e) => {
   if (!myTurn) return;
+
   const x = Math.floor(e.offsetX / cellSize);
   const y = Math.floor(e.offsetY / cellSize);
-  if (board[x][y]) return;
+  if (board[x][y]) return; // 如果已經有棋子，不做任何事
 
+  
   board[x][y] = myPlayer;
   lastMove = { x, y };
   drawBoard();
+
+  
   document.getElementById("moveSound").play();
+
+  
+  if (checkWin(x, y, myPlayer)) {
+      alert(myPlayer + " 獲勝！");
+      myTurn = false; // 停止繼續下
+  }
+
 
   socket.emit("makeMove", { roomId, x, y, player: myPlayer });
   myTurn = false;
 });
+
 
 // 接收落子
 socket.on("moveMade", ({ x, y, player }) => {
@@ -105,3 +118,36 @@ socket.on("roomJoined", (count) => {
 socket.on("roomFull", () => {
   alert("房間滿了！");
 });
+function checkWin(x, y, player) {
+    const directions = [
+        { dx: 1, dy: 0 },  // 水平
+        { dx: 0, dy: 1 },  // 垂直
+        { dx: 1, dy: 1 },  // 斜右下
+        { dx: 1, dy: -1 }  // 斜右上
+    ];
+
+    for (let {dx, dy} of directions) {
+        let count = 1;
+
+        // 正方向
+        for (let i = 1; i < 5; i++) {
+            let nx = x + dx * i;
+            let ny = y + dy * i;
+            if (nx < 0 || ny < 0 || nx >= size || ny >= size) break;
+            if (board[nx][ny] === player) count++;
+            else break;
+        }
+
+        // 反方向
+        for (let i = 1; i < 5; i++) {
+            let nx = x - dx * i;
+            let ny = y - dy * i;
+            if (nx < 0 || ny < 0 || nx >= size || ny >= size) break;
+            if (board[nx][ny] === player) count++;
+            else break;
+        }
+
+        if (count >= 5) return true;
+    }
+    return false;
+}
