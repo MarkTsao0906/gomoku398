@@ -4,8 +4,8 @@ body {
 }
 
 #board {
-  border: 2px solid #000;
-  margin-top: 20px;
-  background: #f5dba5;
-  cursor: pointer;
+    border: 2px solid #000;   /* 邊框 */
+    background-color: #f5dba5; /* 底色 */
+    display: block;            
+    margin: 0 auto;             /* 置中 */
 }
